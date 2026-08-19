@@ -1,0 +1,16 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: commerce-api
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+webhook:
+  secret: ${WEBHOOK_SECRET:replace-with-a-different-random-secret}
+  max-skew-seconds: 300

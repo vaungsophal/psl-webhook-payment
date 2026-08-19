@@ -124,6 +124,37 @@ sequenceDiagram
 
 The webhook endpoint should acknowledge a valid event quickly. Long-running business logic should happen after the event has been stored or queued.
 
+## Current scaffold
+
+This repository now includes an initial runnable skeleton:
+
+- `commerce-api` - Spring Boot service with health, webhook receive, signature verification, and in-memory webhook-event storage.
+- `mock-payment-provider` - Spring Boot service that creates mock payments and sends signed `payment.completed` webhooks.
+- `commerce-web` - Vue 3 + Vite UI for creating a mock payment, completing it, and viewing received webhook events.
+- `docker-compose.yml` - local stack with Commerce API, Mock Payment Provider, Vue app, PostgreSQL, and RabbitMQ.
+
+Start the full stack with Docker:
+
+```bash
+docker compose up --build
+```
+
+Then open:
+
+```text
+http://localhost:5173
+```
+
+Useful endpoints:
+
+```http
+GET  http://localhost:8080/api/health
+GET  http://localhost:8080/api/admin/webhook-events
+GET  http://localhost:8081/api/health
+POST http://localhost:8081/api/mock-payments
+POST http://localhost:8081/api/mock-payments/{paymentId}/complete
+```
+
 ## 6. Suggested repository structure
 
 ```text

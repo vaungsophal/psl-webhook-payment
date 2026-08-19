@@ -1,0 +1,57 @@
+services:
+  commerce-api:
+    build:
+      context: ./commerce-api
+    environment:
+      SERVER_PORT: 8080
+      WEBHOOK_SECRET: ${WEBHOOK_SECRET:-replace-with-a-different-random-secret}
+      MOCK_PROVIDER_BASE_URL: ${MOCK_PROVIDER_BASE_URL:-http://mock-payment-provider:8081}
+    ports:
+      - "${COMMERCE_API_PORT:-8080}:8080"
+    depends_on:
+      - postgres
+      - rabbitmq
+
+  mock-payment-provider:
+    build:
+      context: ./mock-payment-provider
+    environment:
+      SERVER_PORT: 8081
+      WEBHOOK_SECRET: ${WEBHOOK_SECRET:-replace-with-a-different-random-secret}
+      COMMERCE_WEBHOOK_URL: ${COMMERCE_WEBHOOK_URL:-http://commerce-api:8080/api/webhooks/mock-payments}
+    ports:
+      - "${MOCK_PROVIDER_PORT:-8081}:8081"
+    depends_on:
+      - commerce-api
+
+  commerce-web:
+    build:
+      context: ./commerce-web
+    environment:
+      VITE_COMMERCE_API_URL: http://localhost:${COMMERCE_API_PORT:-8080}
+      VITE_MOCK_PROVIDER_URL: http://localhost:${MOCK_PROVIDER_PORT:-8081}
+    ports:
+      - "${COMMERCE_WEB_PORT:-5173}:5173"
+    depends_on:
+      - commerce-api
+      - mock-payment-provider
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-commerce}
+      POSTGRES_USER: ${POSTGRES_USER:-commerce}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+volumes:
+  postgres-data:

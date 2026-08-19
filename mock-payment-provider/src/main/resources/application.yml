@@ -1,0 +1,10 @@
+server:
+  port: ${SERVER_PORT:8081}
+
+spring:
+  application:
+    name: mock-payment-provider
+
+provider:
+  webhook-secret: ${WEBHOOK_SECRET:replace-with-a-different-random-secret}
+  commerce-webhook-url: ${COMMERCE_WEBHOOK_URL:http://localhost:8080/api/webhooks/mock-payments}
