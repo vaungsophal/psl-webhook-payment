@@ -279,7 +279,7 @@ function eventPaymentId(event: WebhookEvent) {
       <div v-if="latestEvent" class="latest-event">
         <span>Latest event</span>
         <strong>{{ latestEvent.eventType }}</strong>
-        <p>{{ eventOrderId(latestEvent) }} · {{ latestEvent.status }}</p>
+        <p>{{ eventOrderId(latestEvent) }} / {{ latestEvent.status }}</p>
       </div>
 
       <div v-if="webhookEvents.length" class="event-list">
