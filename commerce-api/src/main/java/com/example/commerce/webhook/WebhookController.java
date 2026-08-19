@@ -1,5 +1,6 @@
 package com.example.commerce.webhook;
 
+import com.example.commerce.order.CommerceStore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -21,14 +22,17 @@ public class WebhookController {
 
     private final SignatureVerifier signatureVerifier;
     private final WebhookEventStore eventStore;
+    private final CommerceStore commerceStore;
     private final ObjectMapper objectMapper;
 
     public WebhookController(
             SignatureVerifier signatureVerifier,
             WebhookEventStore eventStore,
+            CommerceStore commerceStore,
             ObjectMapper objectMapper) {
         this.signatureVerifier = signatureVerifier;
         this.eventStore = eventStore;
+        this.commerceStore = commerceStore;
         this.objectMapper = objectMapper;
     }
 
@@ -59,7 +63,14 @@ public class WebhookController {
             return ResponseEntity.ok(Map.of("status", "duplicate", "eventId", eventId));
         }
 
-        return ResponseEntity.ok(Map.of("status", "accepted", "eventId", eventId, "eventType", eventType));
+        CommerceStore.WebhookPaymentResult paymentResult = applyPaymentEvent(eventType, payload);
+
+        return ResponseEntity.ok(Map.of(
+                "status", "accepted",
+                "eventId", eventId,
+                "eventType", eventType,
+                "paymentResult", paymentResult.status(),
+                "paymentReason", paymentResult.reason() == null ? "" : paymentResult.reason()));
     }
 
     @GetMapping("/admin/webhook-events")
@@ -79,5 +90,26 @@ public class WebhookController {
             return first;
         }
         return second;
+    }
+
+    private CommerceStore.WebhookPaymentResult applyPaymentEvent(String eventType, JsonNode payload) {
+        if (!"payment.completed".equals(eventType)) {
+            return CommerceStore.WebhookPaymentResult.unchanged("unsupported_event_type");
+        }
+
+        JsonNode data = payload.path("data");
+        String providerPaymentId = data.path("paymentId").asText(null);
+        String orderId = data.path("orderId").asText(null);
+        String currency = data.path("currency").asText(null);
+
+        if (providerPaymentId == null || orderId == null || currency == null || !data.path("amount").isNumber()) {
+            return CommerceStore.WebhookPaymentResult.rejected("invalid_payment_payload");
+        }
+
+        return commerceStore.completePaymentFromWebhook(
+                providerPaymentId,
+                orderId,
+                data.path("amount").decimalValue(),
+                currency);
     }
 }

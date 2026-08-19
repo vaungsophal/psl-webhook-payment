@@ -84,6 +84,10 @@ RabbitMQ UI:            http://localhost:15672
 
 ```http
 GET  http://localhost:8080/api/health
+POST http://localhost:8080/api/orders
+GET  http://localhost:8080/api/orders
+POST http://localhost:8080/api/orders/{orderId}/payments
+GET  http://localhost:8080/api/payments
 GET  http://localhost:8080/api/admin/webhook-events
 
 GET  http://localhost:8081/api/health
@@ -100,6 +104,8 @@ Example mock payment request:
   "currency": "USD"
 }
 ```
+
+Duplicate order IDs are rejected by the Commerce API with `409 Conflict` and `duplicate_order_id`.
 
 ## Webhook Payload Example
 
