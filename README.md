@@ -1,4 +1,4 @@
-# Payment Webhook Learning Project
+# Payment Webhook
 
 A small full-stack project for learning how payment webhooks work.
 
