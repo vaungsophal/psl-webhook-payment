@@ -8,6 +8,7 @@ import java.time.Clock;
 import java.time.Instant;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -16,6 +17,7 @@ public class SignatureVerifier {
     private final WebhookProperties properties;
     private final Clock clock;
 
+    @Autowired
     public SignatureVerifier(WebhookProperties properties) {
         this(properties, Clock.systemUTC());
     }
